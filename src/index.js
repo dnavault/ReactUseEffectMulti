@@ -1,34 +1,49 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import axios from "axios";
-
 import "./styles.css";
 
-const username = "mayankshubham";
 function App() {
-  const [resp, setGitData] = useState({ data: null, repos: null });
+  const [resp, setData] = useState({ data: null, repos: null });
 
   useEffect(() => {
     const fetchData = async () => {
-      const respGlobal = await axios(
-        `https://api.github.com/users/${username}`
+      const apiEmployeePrefixUrl = 'https://api.hatchways.io/assessment/workers/'
+      
+      const respWorkOrders = await axios(
+        `https://api.hatchways.io/assessment/work_orders`
       );
-      const respRepos = await axios(
-        `https://api.github.com/users/${username}/repos`
-      );
+        let employeeIds = [];
+        let employeeAxiosRequests = [];
+        let employeeList = [];
+        respWorkOrders.data.orders.map((workorder,index)=>{
+              if(employeeIds.includes(workorder.workerId)===false)
+              {
+                  employeeIds.push(workorder.workerId);
+              }
+        });
+          employeeIds.map((employeeId,index) => {
+              employeeAxiosRequests.push(axios.get(apiEmployeePrefixUrl.concat(employeeId)));
+          });
 
-      setGitData({ data: respGlobal.data, repos: respGlobal.data });
+          Promise.all(employeeAxiosRequests)
+          .then((employeeRsponses) => {
+              employeeRsponses.map((employeeResponse, index) =>{
+                  employeeList.push(employeeResponse);
+              });
+          });
+
+      setData({ workOrders: respWorkOrders.data.orders, employees: employeeList });
     };
-
     fetchData();
   }, []);
 
-  console.log("render");
-  if (resp.data) {
-    console.log("d", resp.data, resp.repos);
+ // console.log("render");
+  if (resp.workOrders) {
+    console.log("d", resp.workOrders, resp.employees);
   }
 
-  return <h1>Hello</h1>;
+  return <div><h1>Helhssddslos</h1></div>;
 }
 
 const rootElement = document.getElementById("root");
